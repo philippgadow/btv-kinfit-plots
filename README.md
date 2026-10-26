@@ -29,10 +29,24 @@ Output:
 
 | File | What it does |
 |---|---|
-| `src/makePlots.cc` | **Start here.** The whole analysis: event and jet selection, variables, MC normalisation, histograms |
-| `include/Config.h` | Lists of input files and the MC flavour categories (b, c, light) |
+| `src/makePlots.cc` | **Start here.** The whole analysis, in clearly separated steps (see below) |
 | `include/Plotting.h`, `src/Plotting.cc` | Draws the stacked data/MC plot with the ratio panel. You don't need to read this to get started |
 | `Makefile` | Compiles every `src/*.cc` file and links them into `bin/makePlots` |
+
+`makePlots.cc` is organised top to bottom:
+
+| Section | Function | What happens there |
+|---|---|---|
+| Settings | – | Input files, the list of variables to plot, MC normalisation, flavour categories |
+| Step 1: Object definition | `defineJets()` | Which jets of an event do we use? Builds the per-jet `Jet_*` columns |
+| Step 2: Event selection | `selectEvents()` | Which events do we keep? One `Filter()` per cut |
+| Step 3: Histogramming | `bookHistograms()` | Which distributions do we fill? One data histogram and one MC histogram per flavour for every variable |
+| Step 4: Run and output | `main()` | Runs the event loop, prints the cut flow, writes the histograms and calls the plotting |
+
+Remember the key idea of RDataFrame: `Define`, `Filter` and `Histo1D` only
+*describe* what to do. Nothing is read from disk until a result is used for
+the first time (in step 4), and then everything is computed in a single pass
+over the events.
 
 ## How the input files are organised (read this!)
 
@@ -70,18 +84,7 @@ Each jet has these extra variables:
 Make a data/MC plot for each of them. In `src/makePlots.cc` there are two
 `TODO (task 1)` comments:
 
-1. In `selectEvents()`, make a per-jet column, the same way as `Jet_btagUParTB`.
-2. Add an entry to the `variables` list with a sensible axis title and binning.
+1. In `defineJets()` (step 1), make a per-jet column, the same way as `Jet_btagUParTB`.
+2. Add an entry to the `variables` list in the settings with a sensible axis title and binning.
    To choose the binning, first look at the values with `Display` (see above),
    or quickly draw them in the ROOT prompt.
-
-Before you plot, find out what each variable means. What are "close" and
-"far", and what is `ptrel`?
-
-## Ideas for later
-
-- Add the other UParT outputs (`btagUParTAK4CvL`, `btagUParTAK4CvB`, ...).
-- Plot only the leading jet (`Jet_pt[0]`), or each `jetrank` separately.
-- Add event-level plots (number of good jets, `npvn`).
-- Systematic uncertainty bands from the `weight_syst_*` weights.
-- Other backgrounds (single top, DY, ...) as additional MC samples.

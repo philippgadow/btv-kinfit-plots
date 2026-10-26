@@ -13,11 +13,16 @@ namespace plotting {
 // Global plot style (fonts, no statistics box, ...). Call once at the start.
 void setStyle();
 
-// Draw data (black points) on top of the stacked MC histograms (one per
-// flavour category, same order as config::flavours), with a data/MC ratio
-// panel below. Underflow and overflow are added to the first and last bin.
-// Saves <fileName>.pdf and <fileName>.png
-void drawDataMC(const TH1D* data, const std::vector<TH1D*>& mcByFlavour, const std::string& xTitle, bool logY,
-                const std::string& fileName);
+// Draw data (black points) on top of the stacked MC histograms, with a
+// data/MC ratio panel below, and save it as <fileName>.pdf and <fileName>.png.
+//
+//  - mcStack: the MC histograms, bottom of the stack first. Each one is drawn
+//    with its fill colour and appears in the legend with its title.
+//  - The x-axis title is taken from the data histogram.
+//  - Underflow and overflow are added to the first and last bin.
+//
+// The histograms you pass in are not modified.
+void drawDataMC(const TH1D* data, const std::vector<TH1D*>& mcStack, const std::string& fileName,
+                bool logY = false);
 
 }  // namespace plotting
