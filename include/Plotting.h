@@ -4,6 +4,7 @@
 // ============================================================================
 
 #include <TH1D.h>
+#include <TH2D.h>
 
 #include <string>
 #include <vector>
@@ -24,5 +25,10 @@ void setStyle();
 // The histograms you pass in are not modified.
 void drawDataMC(const TH1D* data, const std::vector<TH1D*>& mcStack, const std::string& fileName,
                 bool logY = false);
+
+void drawMC(const std::vector<TH1D*>& mcStack, const std::string& fileName,
+                bool logY = false);
+
+void drawMC2D(TH2D* h, const std::string& fileName);
 
 }  // namespace plotting

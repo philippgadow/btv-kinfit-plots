@@ -12,15 +12,18 @@
 # ============================================================================
 
 # Compiler and flags. root-config tells us where ROOT's headers and libraries are.
-CXX      ?= g++
+CXX      := g++
 CXXFLAGS := -O2 -g -Wall -Wextra $(shell root-config --cflags) -Iinclude
 LDFLAGS  := $(shell root-config --ldflags)
 LDLIBS   := $(shell root-config --libs)
 
 # Every .cc file in src/ is compiled into build/<name>.o and then linked
 # together into one program, bin/makePlots.
-SRCS   := $(wildcard src/*.cc)
-OBJS   := $(SRCS:src/%.cc=build/%.o)
+# SRCS   := $(wildcard src/*.cc)
+# OBJS   := $(SRCS:src/%.cc=build/%.o)
+# Nur die spezifischen Quelldateien für unser Programm definieren
+SRCS   := src/Plotting.cc src/make2DPlots.cc
+OBJS   := build/Plotting.o build/make2DPlots.o
 DEPS   := $(OBJS:.o=.d)
 TARGET := bin/makePlots
 

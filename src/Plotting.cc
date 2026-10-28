@@ -7,6 +7,9 @@
 #include <TLine.h>
 #include <TPad.h>
 #include <TStyle.h>
+#include <TRandom.h>
+#include <TPaletteAxis.h>
+#include <iostream>
 
 #include <algorithm>
 #include <cmath>
@@ -153,6 +156,111 @@ void drawDataMC(const TH1D* data, const std::vector<TH1D*>& mcStack, const std::
     // ---- Save --------------------------------------------------------------
     canvas.SaveAs((fileName + ".pdf").c_str());
     canvas.SaveAs((fileName + ".png").c_str());
+}
+
+void drawMC(const std::vector<TH1D*>& mcStack, const std::string& fileName, bool logY)
+{
+    std::vector<std::shared_ptr<TH1D>> hMC;  // unique_ptr deletes the copies at the end of the function
+    for (const TH1D* h : mcStack) {
+        hMC.push_back(std::make_shared<TH1D>(*h));
+        addOverflowToEdgeBins(*hMC.back());
+        hMC.back()->SetLineColor(h->GetFillColor());
+        hMC.back()->SetFillStyle(0);
+    }
+
+    // ---- Canvas with two pads: distributions on top, ratio below -----------
+    TCanvas canvas("canvas", "", 800, 800);
+    TPad upper("upper", "", 0., 0.30, 1., 1.);
+    TPad lower("lower", "", 0., 0., 1., 0.30);
+    upper.SetMargin(0.15, 0.04, 0.02, 0.10);  // left, right, bottom, top
+    lower.SetMargin(0.15, 0.04, 0.35, 0.03);
+    upper.Draw();
+    lower.Draw();
+
+    // ---- Upper pad: data and stacked MC -----------------------------------
+    upper.cd();
+    upper.SetLogy(logY);
+    
+    for (auto h : hMC) {
+        h.get()->GetXaxis()->SetLabelSize(0.);  // the x-axis labels are on the lower pad
+        h.get()->Draw("Same");
+    }
+
+    TLegend legend(0.62, 0.62, 0.93, 0.88);
+    legend.SetBorderSize(0);
+    legend.SetFillStyle(0);
+    legend.SetTextSize(0.045);
+    for (auto it = hMC.rbegin(); it != hMC.rend(); ++it) {  // top of the stack first
+        legend.AddEntry(it->get(), (*it)->GetTitle(), "f");
+    }
+    legend.Draw();
+
+    TLatex latex;
+    latex.SetNDC();  // coordinates from 0 to 1 instead of axis values
+    latex.SetTextFont(62);
+    latex.SetTextSize(0.055);
+    latex.DrawLatex(0.18, 0.83, "CMS");
+    latex.SetTextFont(52);
+    latex.SetTextSize(0.045);
+    latex.DrawLatex(0.18, 0.78, "Private Work");
+    latex.SetTextFont(42);
+    latex.SetTextAlign(31);  // right-aligned
+    latex.DrawLatex(0.96, 0.92, lumiLabel);
+
+    // ---- Lower pad: data / MC ratio ----------------------------------------
+    lower.cd();
+    lower.SetGridy();
+
+    TH1D hRatio(*hMC.back());     // Zähler: b-Jets
+    TH1D hBand(*hMC[0]);          // Nenner/Referenz: non-b-Jets
+    for (int i = 1; i <= hMC[0]->GetNbinsX(); ++i) {
+        const double non_b = hMC[0]->GetBinContent(i);
+        const double b = hMC.back()->GetBinContent(i);
+        
+        hRatio.SetBinContent(i, non_b > 0 ? b / non_b : 0.);
+        hRatio.SetBinError(i, 0.); 
+        
+        hBand.SetBinContent(i, 1.);
+        hBand.SetBinError(i, 0.);
+    }
+
+    // The band is drawn first, so it defines the axes of the lower pad
+    hBand.SetMinimum(0.0);
+    hBand.SetMaximum(5.0);
+    hBand.GetXaxis()->SetTitle(hMC[0]->GetXaxis()->GetTitle());
+    hBand.GetXaxis()->SetTitleSize(0.13);
+    hBand.GetXaxis()->SetTitleOffset(1.1);
+    hBand.GetXaxis()->SetLabelSize(0.11);
+    hBand.GetYaxis()->SetTitle("b / non-b");
+    hBand.GetYaxis()->SetTitleSize(0.11);
+    hBand.GetYaxis()->SetTitleOffset(0.6);
+    hBand.GetYaxis()->SetLabelSize(0.10);
+    hBand.GetYaxis()->SetNdivisions(505);
+    hBand.GetYaxis()->CenterTitle();
+    hBand.Draw("E2");
+
+    TLine one(hBand.GetXaxis()->GetXmin(), 1., hBand.GetXaxis()->GetXmax(), 1.);
+    one.SetLineStyle(2);  // dashed
+    one.Draw();
+    hRatio.Draw("E1 X0 same");
+    // ---- Save --------------------------------------------------------------
+    canvas.SaveAs((fileName + ".pdf").c_str());
+    canvas.SaveAs((fileName + ".png").c_str());
+}
+
+void drawMC2D(TH2D* h, const std::string& fileName)
+{
+    auto c = new TCanvas("", "", 0, 0, 1100, 550);
+
+    c->SetLogz(1);
+
+    std::cout << h->GetCorrelationFactor() << std::endl;
+
+    h->Draw("colz");
+
+    // ---- Save --------------------------------------------------------------
+    c->SaveAs((fileName + ".pdf").c_str());
+    c->SaveAs((fileName + ".png").c_str());
 }
 
 }  // namespace plotting

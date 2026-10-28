@@ -67,6 +67,21 @@ const std::vector<Variable> variables = {
     {"Jet_btagUParTB", "UParT AK4 b-tag discriminant", 50, 0.0, 1.0, false},
     {"Jet_pt", "Jet p_{T} [GeV]", 50, 0.0, 500.0, false},
     {"Jet_eta", "Jet #eta", 50, -2.5, 2.5, false},
+    {"Jet_close_mlj", "close m_{lj} [GeV]", 50, 0.0, 500, false},
+    {"Jet_close_deta", "close d_{eta} ", 50, 0.0, 5, false},
+    {"Jet_close_dphi", "close d_{phi} ", 50, 0, 3.14, false},
+    {"Jet_close_ptrel", "close pt_{rel} [GeV]", 50, 0.0, 500, false},
+    {"Jet_close_lj2ll_deta", "close lj2ll d_{eta} ", 50, 0.0, 5, false},
+    {"Jet_close_lj2ll_dphi", "close lj2ll d_{phi} ", 50, 0, 3.14, false},
+    {"Jet_far_mlj", "far far m_{lj} [GeV] ", 50, 0.0, 500, false},
+    {"Jet_far_deta", "far far d_{eta} ", 50, 0.0, 5, false},
+    {"Jet_far_dphi", "far far d_{phi} ", 50, 0, 3.14, false},
+    {"Jet_far_ptrel", "far far pt_{rel} [GeV]", 50, 0.0, 500, false},
+    {"Jet_far_lj2ll_deta", "far lj2ll d_{eta} ", 50, 0.0, 5, false},
+    {"Jet_far_lj2ll_dphi", "far lj2ll d_{phi} ", 50, 0, 3.14, false},
+    {"Jet_j2ll_deta", "j2ll d_{eta} ", 50, 0.0, 6, false},
+    {"Jet_j2ll_dphi", "j2ll d_{phi} ", 50, 0, 3.14, false},
+    {"Jet_kindisc", "kindisc", 50, -1, 1, false}
     // TODO (task 1): add the close_*, far_* and j2ll_* variables
 };
 
@@ -127,7 +142,23 @@ ROOT::RDF::RNode defineJets(ROOT::RDF::RNode df)
         .Define("Jet_pt", "Take(jetpt, goodJets)")
         .Define("Jet_eta", "Take(jeteta, goodJets)")
         .Define("Jet_flavour", "Take(flavour, goodJets)")
-        .Define("Jet_btagUParTB", "Take(btagUParTAK4B, goodJets)");
+        .Define("Jet_btagUParTB", "Take(btagUParTAK4B, goodJets)")
+        .Define("Jet_close_mlj", "Take(close_mlj, goodJets)")
+        .Define("Jet_close_deta", "Take(close_deta, goodJets)")
+        .Define("Jet_close_dphi", "Take(close_dphi, goodJets)")
+        .Define("Jet_close_ptrel", "Take(close_ptrel, goodJets)")
+        .Define("Jet_close_lj2ll_deta", "Take(close_lj2ll_deta, goodJets)")
+        .Define("Jet_close_lj2ll_dphi", "Take(close_lj2ll_dphi, goodJets)")
+        .Define("Jet_far_mlj", "Take(far_mlj, goodJets)")
+        .Define("Jet_far_deta", "Take(far_deta, goodJets)")
+        .Define("Jet_far_dphi", "Take(far_dphi, goodJets)")
+        .Define("Jet_far_ptrel", "Take(far_ptrel, goodJets)")
+        .Define("Jet_far_lj2ll_deta", "Take(far_lj2ll_deta, goodJets)")
+        .Define("Jet_far_lj2ll_dphi", "Take(far_lj2ll_dphi, goodJets)")
+        .Define("Jet_j2ll_deta", "Take(j2ll_deta, goodJets)")
+        .Define("Jet_j2ll_dphi", "Take(j2ll_dphi, goodJets)")
+        .Define("Jet_kindisc", "Take(kindisc, goodJets)");
+        
     // TODO (task 1): add the close_*, far_* and j2ll_* variables in the same way,
     //                e.g. .Define("Jet_close_mlj", "Take(close_mlj, goodJets)")
 }
@@ -200,9 +231,15 @@ int main()
     ROOT::RDataFrame ttbarFrame("Events", ttbarFiles);
     ROOT::RDF::Experimental::AddProgressBar(ttbarFrame);  // the big MC file takes a moment
 
+    // auto display0 = dataFrame.Display({"EventInfo", "jetpt", "close_mlj"}, 10);
+    // std::cout << display0->AsString() << std::endl;
+
     // ---- Step 1 + 2: define the jets, then select the events ---------------------------
     ROOT::RDF::RNode data = selectEvents(defineJets(dataFrame));
     ROOT::RDF::RNode ttbar = selectEvents(defineJets(ttbarFrame));
+
+    // auto display = data.Display({"Jet_pt", "jetpt", "close_mlj", "Jet_close_mlj"}, 10);
+    // std::cout << display->AsString() << std::endl;
 
     // MC only: the event weight. 'weight' = generator weight * pileup weight * ttbar weight,
     // and we scale it to the data luminosity.
